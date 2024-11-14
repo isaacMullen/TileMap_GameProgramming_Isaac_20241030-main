@@ -106,7 +106,7 @@ public class TileManager : MonoBehaviour
         string sampleInputData = File.ReadAllText(sampleFile);
 
         //CHANGE TO SAMPLE_INPUT_DATA OR CHANGE SAMPLE_FILE ITSELF(CLASS LEVEL) TO TEST DIFFERENT MAP DATA
-        ConvertMapToTileMap(sampleInputData);
+        ConvertMapToTileMap(mapData);
 
         playerPosition = new Vector3Int(0, 0, 0);
 
