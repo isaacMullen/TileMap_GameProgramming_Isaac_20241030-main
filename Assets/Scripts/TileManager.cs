@@ -16,9 +16,16 @@ using Unity.Collections;
 
 
 public class TileManager : MonoBehaviour
-{   
+{
 
-    string file = "Assets/TextFiles/MapTextFile.txt";    
+    public TextMeshProUGUI welcomeText;
+    bool hasPressedAnyKey;
+
+    public TextMeshProUGUI fishText;
+    private int fishCount = 0;
+
+    string file = "Assets/TextFiles/MapTextFile.txt";
+    string sampleFile = "Assets/TextFiles/SampleInput.txt";     
     
     public Tilemap tileMap;
     public Tilemap playerMap;
@@ -27,10 +34,15 @@ public class TileManager : MonoBehaviour
     
     //Tiles to be spawned
     public TileBase borderBase;
+
+
     public TileBase seaBase;
+    public List<TileBase> seaBases = new List<TileBase>();
+
     public TileBase rockBase;
     public TileBase cornerBase;
-    public TileBase pickupBase;
+    public TileBase smallFish;
+    public TileBase defaultTile;
 
     //Player
     public TileBase playerBase;
@@ -52,6 +64,34 @@ public class TileManager : MonoBehaviour
 
     //Vector3Int newPosition = new Vector3Int(0, 0, 0);
 
+    void Collect(TileBase tile)
+    {
+        TileBase currentTile = tileMap.GetTile(playerPosition);
+
+        if(currentTile == tile)
+        {
+            Debug.Log("DETECTED IN ARRAY");
+            fishCount++;
+            ReplaceTile(tileMap, playerPosition, seaBase);
+            SetText(fishText, $"Fish: {fishCount}", true);    
+
+        }
+    }
+
+    void SetText(TextMeshProUGUI text, string contents, bool toggle)
+    {
+        if(toggle)
+        {
+            text.SetText(contents);
+        }
+        else
+        {
+            text.enabled = false;
+        }
+
+        
+    }
+
     void FlipTile(bool facingRight, Vector3Int position)
     {
 
@@ -63,21 +103,29 @@ public class TileManager : MonoBehaviour
     void Start()
     {              
         string mapData = GenerateMapString(file, 25, 10);
+        string sampleInputData = File.ReadAllText(sampleFile);
 
-        ConvertMapToTileMap(mapData);
+        //CHANGE TO SAMPLE_INPUT_DATA OR CHANGE SAMPLE_FILE ITSELF(CLASS LEVEL) TO TEST DIFFERENT MAP DATA
+        ConvertMapToTileMap(sampleInputData);
 
         playerPosition = new Vector3Int(0, 0, 0);
 
         ReplaceTile(playerMap, playerPosition, playerBase);
 
-
+        SetText(welcomeText, "Collect The Fish!", true);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(Input.anyKeyDown && !hasPressedAnyKey)
+        {
+            //Disables itself
+            SetText(welcomeText, welcomeText.ToString(), false);
+            hasPressedAnyKey = true;
+        }
 
-
+        Collect(smallFish);
         //Getting the mouse position as a Vector3INT
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 gridPosition = mouseWorldPos - (Vector3)gridOrigin;
@@ -120,13 +168,7 @@ public class TileManager : MonoBehaviour
 
     bool IsValidMove(Vector3Int position)
     {
-            
-
-        Vector3Int gridPosition = position;
-
-        
-
-        TileBase tileAtPosition = tileMap.GetTile(gridPosition);
+        TileBase tileAtPosition = tileMap.GetTile(position);
 
         Debug.Log(tileAtPosition);
 
@@ -139,10 +181,6 @@ public class TileManager : MonoBehaviour
             return false;
         }
         else if(tileAtPosition == rockBase)
-        {
-            return false;
-        }
-        else if (tileAtPosition == cornerBase)
         {
             return false;
         }
@@ -171,13 +209,13 @@ public class TileManager : MonoBehaviour
 
             if (direction == Vector3Int.left)
             {
-                facingRight = true;  // Player is facing left when moving left
-                FlipTile(facingRight, playerPosition);  // Flip sprite to the left
+                facingRight = true;  
+                FlipTile(facingRight, playerPosition); 
             }
             else if (direction == Vector3Int.right)
             {
-                facingRight = false;  // Player is facing right when moving right
-                FlipTile(facingRight, playerPosition);  // Flip sprite to the right
+                facingRight = false; 
+                FlipTile(facingRight, playerPosition);  
             }
         }
 
@@ -200,6 +238,7 @@ public class TileManager : MonoBehaviour
             //Each column
             for(int x = 0; x < width; x++)
             {                
+                //Checking corners
                 if((x == 1 && y == 1) || (x == 1 && y == height - 2) || (x == width - 2 && y == 1) || (x == width - 2 && y == height - 2))
                 {
                     //Chests
@@ -250,7 +289,9 @@ public class TileManager : MonoBehaviour
 
 
     char[,] ConvertMapToTileMap(string data)
-    {        
+    {
+
+        data = data.Replace(' ', '~');
 
     string[] lines = data.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -270,25 +311,35 @@ public class TileManager : MonoBehaviour
 
             Vector3Int tilePosition = offset + new Vector3Int(t, i, 0);
 
-            //Debug.Log(grid[i, t].ToString());
+            Debug.Log(grid[i, t].ToString());
 
             switch(grid[i, t])
             {
-                case 'C':
+                case 'C' or 'O':
                     ReplaceTile(tileMap, tilePosition, cornerBase);
                     break;
-                case 'R':
+                case 'R' or '*':
                     ReplaceTile(tileMap, tilePosition, rockBase);
                     break;
                 case '#':
                     ReplaceTile(tileMap, tilePosition, borderBase);
                     break;
+                //I needed variation in my base ground tiles so I seperated defaultTiles for your sample input with my own list of tiles
                 case '~':
+                    TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];
+                    Debug.Log(UnityEngine.Random.Range(0, seaBases.Count));
+                    ReplaceTile(tileMap, tilePosition, seaBaseToDraw);
+                    break;
+                case 'P' or '$':
+                    ReplaceTile(tileMap, tilePosition, smallFish);
+                    break;
+                case ' ':
                     ReplaceTile(tileMap, tilePosition, seaBase);
                     break;
-                case 'P':
-                    ReplaceTile(tileMap, tilePosition, pickupBase);
+                default:
+                    ReplaceTile(tileMap, tilePosition, defaultTile);
                     break;
+
             }                    
         }
     }                                
