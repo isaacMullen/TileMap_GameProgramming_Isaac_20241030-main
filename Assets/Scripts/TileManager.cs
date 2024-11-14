@@ -40,12 +40,24 @@ public class TileManager : MonoBehaviour
     public int columnLength;
     public int rowLength;
 
-    public Vector3Int offset = new Vector3Int(0, -5, 0);
+    public Vector3Int offset = new Vector3Int(0, 0, 0);
     public Vector2 gridOrigin = Vector2.zero;  // Bottom-left corner of the grid
     
-    public float cellSize = 1f;   
+    public float cellSize = 1f;
 
+    private readonly Matrix4x4 flipMatrix = Matrix4x4.Scale(new Vector3(-1, 1, 1));
+    private readonly Matrix4x4 normalMatrix = Matrix4x4.identity;
+    bool facingRight = true;
 
+    //Vector3Int newPosition = new Vector3Int(0, 0, 0);
+
+    void FlipTile(bool facingRight, Vector3Int position)
+    {
+
+        Matrix4x4 matrixToUse = facingRight ? flipMatrix : normalMatrix;
+        playerMap.SetTransformMatrix(position, matrixToUse);
+
+    }
 
     void Start()
     {              
@@ -53,7 +65,7 @@ public class TileManager : MonoBehaviour
 
         ConvertMapToTileMap(mapData);
 
-        Vector3Int playerPosition = new Vector3Int(0, 0, 0);
+        playerPosition = new Vector3Int(0, 0, 0);
 
         ReplaceTile(playerMap, playerPosition, playerBase);
 
@@ -63,6 +75,8 @@ public class TileManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+
         //Getting the mouse position as a Vector3INT
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 gridPosition = mouseWorldPos - (Vector3)gridOrigin;
@@ -74,19 +88,25 @@ public class TileManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W))
         {
-            MovePlayer(Vector3Int.up);
+            MovePlayer(Vector3Int.up);  // Move up
+            FlipTile(facingRight, playerPosition);  // Keep the same facing direction
         }
         if (Input.GetKeyDown(KeyCode.S))
         {
-            MovePlayer(Vector3Int.down);
+            MovePlayer(Vector3Int.down);  // Move down
+            FlipTile(facingRight, playerPosition);  // Keep the same facing direction
         }
         if (Input.GetKeyDown(KeyCode.A))
         {
-            MovePlayer(Vector3Int.left);
+            facingRight = false;  // Update facing direction to left
+            MovePlayer(Vector3Int.left);  // Move left
+            FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
         }
         if (Input.GetKeyDown(KeyCode.D))
         {
-            MovePlayer(Vector3Int.right);
+            facingRight = true;  // Update facing direction to right
+            MovePlayer(Vector3Int.right);  // Move right
+            FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
         }
 
 
@@ -128,7 +148,7 @@ public class TileManager : MonoBehaviour
         return true;
     }
 
-    void MovePlayer(Vector3Int direction)
+    Vector3Int MovePlayer(Vector3Int direction)
     {
         Vector3Int newPosition = playerPosition + direction;
         
@@ -138,12 +158,30 @@ public class TileManager : MonoBehaviour
         {
             TileBase tileToReplace = tileMap.GetTile(playerPosition);
 
+            playerMap.SetTransformMatrix(playerPosition, Matrix4x4.identity);
+
             ReplaceTile(playerMap, playerPosition, tileToReplace);
             
             playerPosition = newPosition;
 
             ReplaceTile(playerMap, playerPosition, playerBase);
+
+            playerMap.SetTransformMatrix(playerPosition, Matrix4x4.identity);
+
+            if (direction == Vector3Int.left)
+            {
+                facingRight = true;  // Player is facing left when moving left
+                FlipTile(facingRight, playerPosition);  // Flip sprite to the left
+            }
+            else if (direction == Vector3Int.right)
+            {
+                facingRight = false;  // Player is facing right when moving right
+                FlipTile(facingRight, playerPosition);  // Flip sprite to the right
+            }
         }
+
+        playerMap.SetTransformMatrix(newPosition, Matrix4x4.identity);
+        return newPosition;
     }
 
     string GenerateMapString(string filename, int width, int height)

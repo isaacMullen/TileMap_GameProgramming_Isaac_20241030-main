@@ -733,7 +733,7 @@ MonoBehaviour:
   seaBase: {fileID: 11400000, guid: 97a4e9eb8ff67a742a66ec5ee2c427c8, type: 2}
   rockBase: {fileID: 11400000, guid: ec5632ac185d5a94f9051b382d01f822, type: 2}
   cornerBase: {fileID: 11400000, guid: 351827e1a475b884482ce0574c7a92c1, type: 2}
-  playerBase: {fileID: 11400000, guid: bf91c83a37407d940bb18721a769a0f9, type: 2}
+  playerBase: {fileID: 11400000, guid: e6e483572940e8d4dab93908cf607d47, type: 2}
   columnLength: 0
   rowLength: 0
   offset: {x: -12, y: -5, z: 0}
