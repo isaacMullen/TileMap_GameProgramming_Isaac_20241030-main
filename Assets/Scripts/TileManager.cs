@@ -30,6 +30,7 @@ public class TileManager : MonoBehaviour
     public TileBase seaBase;
     public TileBase rockBase;
     public TileBase cornerBase;
+    public TileBase pickupBase;
 
     //Player
     public TileBase playerBase;
@@ -195,15 +196,16 @@ public class TileManager : MonoBehaviour
             Debug.Log(y);
             //Random Rock
             int randomRock = UnityEngine.Random.Range(1, width - 1);
+            int randomPickup = UnityEngine.Random.Range(1, width - 1);
             //Each column
             for(int x = 0; x < width; x++)
             {                
                 if((x == 1 && y == 1) || (x == 1 && y == height - 2) || (x == width - 2 && y == 1) || (x == width - 2 && y == height - 2))
                 {
                     //Chests
-                    int randomChest = UnityEngine.Random.Range(0, 2);                    
+                    int randomCorner = UnityEngine.Random.Range(0, 2);                    
                     
-                    if(randomChest == 1)
+                    if(randomCorner == 1)
                     {
                         writer.Write('C');
                         mapData.Append('C');
@@ -220,6 +222,12 @@ public class TileManager : MonoBehaviour
                 {
                     writer.Write('R');
                     mapData.Append('R');
+                }
+                //Pickups
+                else if (x == randomPickup && y < height - 1 && y != 0 && x != 'R')
+                {
+                    writer.Write('P');
+                    mapData.Append('P');
                 }
                 //Border check
                 else if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
@@ -277,6 +285,9 @@ public class TileManager : MonoBehaviour
                     break;
                 case '~':
                     ReplaceTile(tileMap, tilePosition, seaBase);
+                    break;
+                case 'P':
+                    ReplaceTile(tileMap, tilePosition, pickupBase);
                     break;
             }                    
         }
