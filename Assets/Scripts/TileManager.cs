@@ -238,13 +238,13 @@ public class TileManager : MonoBehaviour
             //Each column
             for(int x = 0; x < width; x++)
             {                
-                //Checking corners
-                if((x == 1 && y == 1) || (x == 1 && y == height - 2) || (x == width - 2 && y == 1) || (x == width - 2 && y == height - 2))
+                //Checking corners                
+                if ((x == 1 && y == 1) || (x == 1 && y == height - 2) || (x == width - 2 && y == 1) || (x == width - 2 && y == height - 2))
                 {
-                    //Chests
-                    int randomCorner = UnityEngine.Random.Range(0, 2);                    
-                    
-                    if(randomCorner == 1)
+                    //50% chance of placing each corner
+                    int randomCorner = UnityEngine.Random.Range(0, 2);
+
+                    if (randomCorner == 1)
                     {
                         writer.Write('C');
                         mapData.Append('C');
@@ -254,26 +254,27 @@ public class TileManager : MonoBehaviour
                         writer.Write('~');
                         mapData.Append('~');
                     }
-                    
+
                 }
-                //Rocks
-                else if(x == randomRock && y < height - 1 && y != 0)
+                //Rocks (if inside the map and not the top or bottom border)
+                else if (x == randomRock && y < height - 1 && y != 0 && (x != 5 && y != 12))
                 {
                     writer.Write('R');
                     mapData.Append('R');
                 }
-                //Pickups
-                else if (x == randomPickup && y < height - 1 && y != 0 && x != 'R')
+                //Pickups (if inside the bounds of the map and not the players start position3)
+                else if (x == randomPickup && y < height - 1 && y != 0 && x != 'R' && (x != 5 && y != 12))
                 {
                     writer.Write('P');
                     mapData.Append('P');
                 }
-                //Border check
+                //Otherwise write border
                 else if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
                 {
                     writer.Write('#');
                     mapData.Append('#');
                 }
+                //otherwise write ground tile
                 else
                 {
                     writer.Write('~');
@@ -293,55 +294,62 @@ public class TileManager : MonoBehaviour
 
         data = data.Replace(' ', '~');
 
-    string[] lines = data.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] lines = data.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
+        data = data.Trim();
 
-
-    int height = lines.Length;
-    int width = lines[0].Length;
+        int height = lines.Length;
+        int width = lines[0].Length - 1;
 
 
     char[,] grid = new char[height, width];
         
-    for (int i = 0; i < height; i++)
-    {
-        for(int t = 0; t < width; t++)
+    
+        foreach(var line in lines)
         {
-            grid[i, t] = lines[i][t];
-
-            Vector3Int tilePosition = offset + new Vector3Int(t, i, 0);
-
-            Debug.Log(grid[i, t].ToString());
-
-            switch(grid[i, t])
-            {
-                case 'C' or 'O':
-                    ReplaceTile(tileMap, tilePosition, cornerBase);
-                    break;
-                case 'R' or '*':
-                    ReplaceTile(tileMap, tilePosition, rockBase);
-                    break;
-                case '#':
-                    ReplaceTile(tileMap, tilePosition, borderBase);
-                    break;
-                //I needed variation in my base ground tiles so I seperated defaultTiles for your sample input with my own list of tiles
-                case '~':
-                    TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];
-                    Debug.Log(UnityEngine.Random.Range(0, seaBases.Count));
-                    ReplaceTile(tileMap, tilePosition, seaBaseToDraw);
-                    break;
-                case 'P' or '$':
-                    ReplaceTile(tileMap, tilePosition, smallFish);
-                    break;
-                case ' ':
-                    ReplaceTile(tileMap, tilePosition, seaBase);
-                    break;
-                default:
-                    ReplaceTile(tileMap, tilePosition, defaultTile);
-                    break;
-
-            }                    
+            Debug.Log(line);
+            Debug.Log(line.Length);
         }
+        for (int i = 0; i < height; i++)
+    {
+            for(int t = 0; t < width; t++)
+            {
+                grid[i, t] = lines[i][t];
+
+                Vector3Int tilePosition = offset + new Vector3Int(t, i, 0);
+
+                //Debug.Log(grid[i, t].ToString());Debug.Log($"Data: {data}");
+
+            
+                switch(grid[i, t])
+                {
+                    case 'C' or 'O':
+                        ReplaceTile(tileMap, tilePosition, cornerBase);
+                        break;
+                    case 'R' or '*':
+                        ReplaceTile(tileMap, tilePosition, rockBase);
+                        break;
+                    case '#':
+                        ReplaceTile(tileMap, tilePosition, borderBase);
+                        break;
+                    //I needed variation in my base ground tiles so I seperated defaultTiles for your sample input with my own list of tiles
+                    case '~':
+                        TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];
+                        Debug.Log(UnityEngine.Random.Range(0, seaBases.Count));
+                        ReplaceTile(tileMap, tilePosition, seaBaseToDraw);
+                        break;
+                    case 'P' or '$':
+                        ReplaceTile(tileMap, tilePosition, smallFish);
+                        break;
+                    case ' ':
+                        ReplaceTile(tileMap, tilePosition, seaBase);
+                        break;
+                    default:
+                        ReplaceTile(tileMap, tilePosition, defaultTile);                        
+                        break;
+
+                }                    
+            }
     }                                
         return grid;
     }    
