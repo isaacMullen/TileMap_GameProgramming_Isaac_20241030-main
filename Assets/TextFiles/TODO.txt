@@ -1,0 +1,1 @@
+Seperate my player controller into its own script - DONE

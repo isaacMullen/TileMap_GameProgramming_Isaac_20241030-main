@@ -252,7 +252,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -554,7 +554,7 @@ TilemapRenderer:
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
-  m_Mode: 0
+  m_Mode: 1
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
 --- !u!1839735485 &848260007
@@ -634,6 +634,7 @@ GameObject:
   - component: {fileID: 985361321}
   - component: {fileID: 985361319}
   - component: {fileID: 985361320}
+  - component: {fileID: 985361322}
   m_Layer: 0
   m_Name: playerTileMap
   m_TagString: Untagged
@@ -664,30 +665,30 @@ Tilemap:
   m_TileMatrixArray:
   - m_RefCount: 0
     m_Data:
-      e00: 7.0684684e+28
+      e00: 0
       e01: 0
-      e02: -1.6263053e-19
-      e03: -1.6263053e-19
-      e10: 2.7900757e+20
+      e02: 5.5340303e+19
+      e03: 5.5340303e+19
+      e10: 2.63e-43
       e11: 0
-      e12: 6.75e-43
-      e13: 6.75e-43
-      e20: -1.9737927e-12
-      e21: 6.1657346e-11
-      e22: 6.7729034e-29
-      e23: -3.727918e+19
+      e12: 9.61e-43
+      e13: 9.61e-43
+      e20: 0.00000010425845
+      e21: -0.0000018341998
+      e22: -4.45103e-19
+      e23: 1.6489204e+29
       e30: 4.5905e-41
-      e31: 6.8e-43
-      e32: 6.77e-43
-      e33: 6.78e-43
+      e31: 9.64e-43
+      e32: 9.61e-43
+      e33: 9.64e-43
   m_TileColorArray:
   - m_RefCount: 0
-    m_Data: {r: 3.9774e-41, g: 3.9774e-41, b: 3.9774e-41, a: 3.9774e-41}
+    m_Data: {r: 3.9693e-41, g: 3.9693e-41, b: 3.9693e-41, a: 3.9693e-41}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Origin: {x: -12, y: -5, z: 0}
-  m_Size: {x: 24, y: 10, z: 1}
+  m_Size: {x: 25, y: 10, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
@@ -753,7 +754,7 @@ TilemapRenderer:
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
   m_SortOrder: 0
-  m_Mode: 0
+  m_Mode: 1
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
 --- !u!4 &985361321
@@ -771,6 +772,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1025279332}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &985361322
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 985361318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97666a8cded590043abf5df2830fea37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fishCount: 0
+  fishToCollect: 0
+  fishText: {fileID: 1574447746}
+  centerText: {fileID: 1578585931}
+  tileManager: {fileID: 1875206001}
+  playerMap: {fileID: 985361319}
+  playerBase: {fileID: 11400000, guid: e6e483572940e8d4dab93908cf607d47, type: 2}
 --- !u!1 &1025279330
 GameObject:
   m_ObjectHideFlags: 0
@@ -1135,7 +1155,7 @@ GameObject:
   - component: {fileID: 1578585932}
   - component: {fileID: 1578585931}
   m_Layer: 5
-  m_Name: StartText
+  m_Name: CenterText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1301,10 +1321,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61a61ffc269ca8a4585fd3476c00e0bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  welcomeText: {fileID: 1578585931}
-  fishText: {fileID: 1574447746}
+  playerController: {fileID: 985361322}
+  file: Assets/TextFiles/MapTextFile.txt
+  sampleFile: Assets/TextFiles/SampleInput.txt
   tileMap: {fileID: 848260007}
-  playerMap: {fileID: 985361319}
   borderBase: {fileID: 11400000, guid: 976a24d3ebae4d343b56187b1403bc89, type: 2}
   seaBase: {fileID: 11400000, guid: 97a4e9eb8ff67a742a66ec5ee2c427c8, type: 2}
   seaBases:
@@ -1312,10 +1332,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 56e52007546d97c4a8d01f004c2a9d41, type: 2}
   - {fileID: 11400000, guid: d4a698339e0f34a4f89200fe01510543, type: 2}
   rockBase: {fileID: 11400000, guid: ec5632ac185d5a94f9051b382d01f822, type: 2}
-  cornerBase: {fileID: 11400000, guid: 351827e1a475b884482ce0574c7a92c1, type: 2}
-  smallFish: {fileID: 11400000, guid: 5efc157646e0b9541b304113d2e1a965, type: 2}
+  cornerBase: {fileID: 11400000, guid: 5efc157646e0b9541b304113d2e1a965, type: 2}
+  smallFish: {fileID: 11400000, guid: 351827e1a475b884482ce0574c7a92c1, type: 2}
   defaultTile: {fileID: 11400000, guid: d4a698339e0f34a4f89200fe01510543, type: 2}
-  playerBase: {fileID: 11400000, guid: e6e483572940e8d4dab93908cf607d47, type: 2}
   columnLength: 0
   rowLength: 0
   offset: {x: -12, y: -5, z: 0}
