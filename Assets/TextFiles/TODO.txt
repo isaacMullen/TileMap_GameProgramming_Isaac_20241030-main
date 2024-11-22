@@ -1,1 +1,14 @@
-Seperate my player controller into its own script - DONE
+Give my enemies spawning rules based on the originial tilemap
+
+make enemies move
+
+
+
+
+
+
+
+
+DONE--------------------------------------------------
+
+-Seperate my player controller into its own script

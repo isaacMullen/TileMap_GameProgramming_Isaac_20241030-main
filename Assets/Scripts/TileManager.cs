@@ -17,19 +17,28 @@ using Unity.Collections;
 
 public class TileManager : MonoBehaviour
 {
+    //CONTAINERS TO TRACK POSITION OF PLACED ROCKS AND FISH
+    HashSet<(int, int)> placedRocks = new HashSet<(int, int)>();
+    HashSet<(int, int)> placedFish = new HashSet<(int, int)>();
+
     public PlayerController playerController;
 
     public string file = "Assets/TextFiles/MapTextFile.txt";
     public string sampleFile = "Assets/TextFiles/SampleInput.txt";     
     
-    public Tilemap tileMap;       
+    public Tilemap tileMap;
+    public Tilemap enemyTileMap;
     
+    int height;
+    int width;
+
     //Tiles to be spawned
     public TileBase borderBase;
 
-
     public TileBase seaBase;
     public List<TileBase> seaBases = new List<TileBase>();
+
+    public TileBase enemyBase;
 
     public TileBase rockBase;
     public TileBase cornerBase;
@@ -58,34 +67,50 @@ public class TileManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {        
-        //Getting the mouse position as a Vector3INT
-        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 gridPosition = mouseWorldPos - (Vector3)gridOrigin;
-
-        int column = Mathf.FloorToInt(gridPosition.x / cellSize);
-        int row = Mathf.FloorToInt(gridPosition.y / cellSize);        
+        
     }
 
     public void ReplaceTile(Tilemap map, Vector3Int tileToReplace, TileBase tile)
     {
-        map.SetTile(tileToReplace, tile);
+        if (tile == null)
+        {
+            //Debug.LogError($"TileBase is null at position {tileToReplace}");
+        }
+        else
+        {
+            map.SetTile(tileToReplace, tile);
+            //Debug.Log($"Set tile {tile.name} at position {tileToReplace}");
+        }
     }    
 
     public string GenerateMapString(string filename, int width, int height)
     {
+        //RESETS THE PLAYER MAP SO THE ENVIRONMENT TILEMAP CAN WRITE OVER THE SPACES
+        playerController.playerMap.ClearAllTiles();
+
+        //RESETTING PLAYER POSITION
+        playerController.playerPosition = new Vector3Int(0, 0, 0);
+
+        //SPAWNING PLAYER IN THE MIDDLE OF THE MAP
+        ReplaceTile(playerController.playerMap, playerController.playerPosition, playerController.playerBase);
+
+        
+
+        
 
         StringBuilder mapData = new StringBuilder();
         using StreamWriter writer = new StreamWriter(filename);
         //Each row
         for(int y = 0; y < height; y++)
         {
-            Debug.Log(y);
+            //Debug.Log(y);
             //Random Rock
             int randomRock = UnityEngine.Random.Range(1, width - 1);
             int fishPosition = UnityEngine.Random.Range(1, width - 1);
+            int randomEnemy = UnityEngine.Random.Range(1, width - 1);
             //Each column
             for(int x = 0; x < width; x++)
-            {                
+            {               
                 //Checking corners                
                 if ((x == 1 && y == 1) || (x == 1 && y == height - 2) || (x == width - 2 && y == 1) || (x == width - 2 && y == height - 2))
                 {
@@ -109,15 +134,27 @@ public class TileManager : MonoBehaviour
                 {
                     writer.Write('R');
                     mapData.Append('R');
+                    //STORING POSITION OF ROCK
+                    placedRocks.Add((x, y));
                 }
                 //FISH (if inside the bounds of the map and not the players start position)
-                else if (x == fishPosition && y < height - 1 && y != 0 && x != 'R' && (x != 5 && y != 12))
+                else if (x == fishPosition && y < height - 1 && y != 0 && !placedRocks.Contains((x, y)) && (x != 5 && y != 12))
                 {
                     writer.Write('F');
                     mapData.Append('F');
-                    //Tracking total spawned Fish
+                    //STORING POSITION OF FISH
+                    placedFish.Add((x, y));
+                    //TRACKING TOTAL FISH SPAWNED
+                    playerController.fishToCollect++;
                     
+
                 }
+                /*else if(x == randomEnemy && y < height - 1 && y != 0 && !placedRocks.Contains((x, y)) && (x != 5 && y != 12) && !placedFish.Contains((x, y)))
+                {
+                    writer.Write('E');
+                    mapData.Append('E');
+                }*/
+                
                 //Otherwise write border
                 else if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
                 {
@@ -141,26 +178,18 @@ public class TileManager : MonoBehaviour
 
     public char[,] ConvertMapToTileMap(string data)
     {
-
-
         data = data.Replace(' ', '~');
 
         string[] lines = data.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
         data = data.Trim();
 
-        int height = lines.Length;
-        int width = lines[0].Length - 1;
+        height = lines.Length;
+        width = lines[0].Length - 1;
 
 
         char[,] grid = new char[height, width];
         
-    
-        foreach(var line in lines)
-        {
-            Debug.Log(line);
-            Debug.Log(line.Length);
-        }
         for (int i = 0; i < height; i++)
         {
             
@@ -168,14 +197,7 @@ public class TileManager : MonoBehaviour
             {                
                 grid[i, t] = lines[i][t];
 
-                Vector3Int tilePosition = offset + new Vector3Int(t, i, 0);
-                
-                if (i == 4)
-                {
-                    Debug.Log($"Row: {i}, Col: {t}, Tile: {grid[i, t]}, Position: {tilePosition}");
-                }
-                //Debug.Log(grid[i, t].ToString());Debug.Log($"Data: {data}");
-
+                Vector3Int tilePosition = offset + new Vector3Int(t, i, 0);                                
 
                 switch (grid[i, t])
                 {
@@ -190,24 +212,23 @@ public class TileManager : MonoBehaviour
                         break;
                     //I needed variation in my base ground tiles so I seperated defaultTiles for your sample input with my own list of tiles
                     case '~':
-                        TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];
-                        Debug.Log(UnityEngine.Random.Range(0, seaBases.Count));
+                        TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];                        
                         ReplaceTile(tileMap, tilePosition, seaBaseToDraw);
                         break;
                     case 'F' or '$':
-                        ReplaceTile(tileMap, tilePosition, smallFish);
-                        playerController.fishToCollect += 1;
+                        //Debug.Log($"Placing fish at {tilePosition}");
+                        ReplaceTile(tileMap, tilePosition, smallFish);                        
                         break;
                     case ' ':
                         ReplaceTile(tileMap, tilePosition, seaBase);
-                        break;
+                        break;                   
                     default:
-                        ReplaceTile(tileMap, tilePosition, defaultTile);                        
+                        ReplaceTile(tileMap, tilePosition, defaultTile);                      
                         break;
 
                 }                    
             }
         }        
         return grid;
-    }    
+    }     
 }

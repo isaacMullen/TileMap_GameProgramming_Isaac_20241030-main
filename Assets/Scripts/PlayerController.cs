@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
 
     public TileManager tileManager;
 
-    private Vector3Int playerPosition;
+    public Vector3Int playerPosition;
     public Tilemap playerMap;
 
     public TileBase playerBase;
@@ -29,12 +29,7 @@ public class PlayerController : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {
-        playerPosition = new Vector3Int(0, 0, 0);
-
-        //Refernce TileManager Script
-        tileManager.ReplaceTile(playerMap, playerPosition, playerBase);
-
+    {        
         SetText(centerText, "Collect The Fish!", true);
     }
 
@@ -129,14 +124,18 @@ public class PlayerController : MonoBehaviour
         Vector3Int newPosition = playerPosition + direction;
 
 
-
         if (IsValidMove(newPosition))
         {
             TileBase tileToReplace = tileManager.tileMap.GetTile(playerPosition);
 
             playerMap.SetTransformMatrix(playerPosition, Matrix4x4.identity);
 
-            tileManager.ReplaceTile(playerMap, playerPosition, tileToReplace);
+            //CLEARING THE PLAYER MAP EVERY TIME HE MOVES SO IT DOESN'T HAVE TO DRAW TILES TO OVERRIDE THE PREVIOUS SHARK POSITION
+            //THIS WAS CAUSING A BUG WHERE WHEN I REGENERATE THE MAP IT WAS HIDING SOME ENVRIONMENT TILES BELOW THE PLAYERMAP THAT WAS GENERATED 
+            //AS THE PLAYER MOVED (!!!AWESOME SIMPLE FIX!!!)
+            playerMap.ClearAllTiles();
+
+            tileManager.ReplaceTile(tileManager.tileMap, playerPosition, tileToReplace);
 
             playerPosition = newPosition;
 
@@ -186,8 +185,6 @@ public class PlayerController : MonoBehaviour
         {
             text.enabled = false;
         }
-
-
     }
 
     void FlipTile(bool facingRight, Vector3Int position)
