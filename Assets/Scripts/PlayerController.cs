@@ -9,7 +9,10 @@ using UnityEngine.Tilemaps;
 public class PlayerController : MonoBehaviour
 {
     public EnemyController enemyController;
-    
+
+    public TextMeshProUGUI healthText;
+    public int health;
+
     bool inCombat;
     int turn = 0;
     bool acceptingInput = true;
@@ -37,6 +40,9 @@ public class PlayerController : MonoBehaviour
     void Start()
     {        
         SetText(centerText, "Collect The Fish!", true);
+
+        healthText.enabled = false;
+        enemyController.enemyHealthText.enabled = false;
     }
 
     // Update is called once per frame
@@ -58,7 +64,8 @@ public class PlayerController : MonoBehaviour
         
         if(!inCombat)
         {
-            HandlePlayerInput();            
+            HandlePlayerInput();
+            UpdateHealth();
         }      
         else if (!combatRoutineRunning)
         {
@@ -66,8 +73,37 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    bool combatRoutineRunning = false;
+    void UpdateHealth()
+    {
+        if(inCombat)
+        {
+            SetText(healthText, $"HP: {health}", true);
+            SetText(enemyController.enemyHealthText, $"Enemy HP: {enemyController.enemyHealth}", true);            
+        }
+        else
+        {
+            healthText.enabled = false;
+            enemyController.enemyHealthText.enabled = false;
+        }
+        
+        
+    }
 
+    void EndCombatCondition()
+    {
+        if(health <= 0)
+        {
+            Debug.Log("You Died");            
+            inCombat = false;
+        }
+        else if(enemyController.enemyHealth <= 0)
+        {
+            Debug.Log("Enemy Died");
+            inCombat = false;
+        }
+    }
+    
+    bool combatRoutineRunning = false;
     void StartCombat()
     {
         combatRoutineRunning = true;
@@ -278,4 +314,6 @@ public class PlayerController : MonoBehaviour
         playerMap.SetTransformMatrix(position, matrixToUse);
 
     }
+
+    
 }

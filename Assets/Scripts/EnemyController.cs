@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -10,6 +11,9 @@ public class EnemyController : MonoBehaviour
     
     public Tilemap enemyTileMap;
     public TileBase enemyTileBase;
+
+    public TextMeshProUGUI enemyHealthText;
+    public int enemyHealth;
 
     public Vector3Int enemySpawnLocation;
     // Start is called before the first frame update
