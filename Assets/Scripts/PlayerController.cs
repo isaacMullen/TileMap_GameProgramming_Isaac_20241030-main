@@ -2,11 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class PlayerController : MonoBehaviour
 {
+    public EnemyController enemyController;
+    
+    bool inCombat;
+    int turn = 0;
     bool acceptingInput = true;
     
     public int fishCount = 0;
@@ -20,6 +25,7 @@ public class PlayerController : MonoBehaviour
 
     public Vector3Int playerPosition;
     public Tilemap playerMap;
+
 
     public TileBase playerBase;
 
@@ -41,7 +47,7 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(ReloadMap());
         }
 
-            if (Input.anyKeyDown && !hasPressedAnyKey)
+        if (Input.anyKeyDown && !hasPressedAnyKey)
         {
             //Disables itself
             SetText(centerText, centerText.ToString(), false);
@@ -49,28 +55,99 @@ public class PlayerController : MonoBehaviour
         }
 
         Collect(tileManager.smallFish);
+        
+        if(!inCombat)
+        {
+            HandlePlayerInput();            
+        }      
+        else if (!combatRoutineRunning)
+        {
+            StartCombat();                     
+        }
+    }
 
+    bool combatRoutineRunning = false;
+
+    void StartCombat()
+    {
+        combatRoutineRunning = true;
+        StartCoroutine(CombatRoutine());                
+    }
+    
+
+    IEnumerator CombatRoutine()
+    {                                                
+        bool playerTurn = false;
+
+        Debug.Log($"Starting Turn {turn}");
+        while(inCombat)
+        {
+            if (!playerTurn)
+            {
+                int randomAttack = Random.Range(0, 3);
+                Debug.Log($"Enemy Attacked");
+                yield return new WaitForSeconds(1);
+                playerTurn = true;
+            }
+
+
+
+            if (playerTurn)
+            {
+                Debug.Log("Your turn, Press 1 to attack.");
+                yield return WaitForPlayerAction();
+                Debug.Log("Player Attacked the enemy!");
+
+
+                yield return new WaitForSeconds(2);
+                turn++;
+                playerTurn = false;
+            }            
+        }        
+        combatRoutineRunning = false;
+    }
+        
+    IEnumerator WaitForPlayerAction()
+    {
+        bool actionTaken = false;
+        while(!actionTaken)
+        {
+            if(Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                actionTaken = true;
+            }
+            
+            yield return null;
+        }
+    }
+
+    private void HandlePlayerInput()
+    {
         if (Input.GetKeyDown(KeyCode.W) && acceptingInput)
         {
             MovePlayer(Vector3Int.up);  // Move up
             FlipTile(facingRight, playerPosition);  // Keep the same facing direction
+            Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.S) && acceptingInput)
         {
             MovePlayer(Vector3Int.down);  // Move down
             FlipTile(facingRight, playerPosition);  // Keep the same facing direction
+            Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.A) && acceptingInput)
         {
             facingRight = false;  // Update facing direction to left
             MovePlayer(Vector3Int.left);  // Move left
             FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
+            Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.D) && acceptingInput)
         {
             facingRight = true;  // Update facing direction to right
             MovePlayer(Vector3Int.right);  // Move right
             FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
+            Debug.Log(playerPosition);
         }
     }
 
@@ -101,10 +178,11 @@ public class PlayerController : MonoBehaviour
     bool IsValidMove(Vector3Int position)
     {
         TileBase tileAtPosition = tileManager.tileMap.GetTile(position);
+        TileBase enemyAtPosition = enemyController.enemyTileMap.GetTile(position);
 
-        Debug.Log(tileAtPosition);
+        //Debug.Log(tileAtPosition);
 
-        if (tileAtPosition == tileManager.seaBase)
+        if (tileAtPosition == tileManager.seaBase && enemyAtPosition != enemyController.enemyTileBase)
         {
             return true;
         }
@@ -114,6 +192,12 @@ public class PlayerController : MonoBehaviour
         }
         else if (tileAtPosition == tileManager.rockBase)
         {
+            return false;
+        }
+        else if(enemyAtPosition == enemyController.enemyTileBase)
+        {
+            inCombat = true;
+            Debug.Log("Combat Started");
             return false;
         }
         return true;

@@ -287,7 +287,7 @@ MonoBehaviour:
   tileManager: {fileID: 1875206001}
   enemyTileMap: {fileID: 232363304}
   enemyTileBase: {fileID: 11400000, guid: 2b9bf8fce6ecf4e4aa9587a43941b572, type: 2}
-  enemySpawnLocation: {x: 1, y: 0, z: 0}
+  enemySpawnLocation: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -950,6 +950,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97666a8cded590043abf5df2830fea37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyController: {fileID: 232363305}
   fishCount: 0
   fishToCollect: 0
   fishText: {fileID: 1574447746}

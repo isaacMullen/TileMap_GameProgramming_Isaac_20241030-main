@@ -11,7 +11,7 @@ public class EnemyController : MonoBehaviour
     public Tilemap enemyTileMap;
     public TileBase enemyTileBase;
 
-    private Vector3Int enemySpawnLocation;
+    public Vector3Int enemySpawnLocation;
     // Start is called before the first frame update
     void Start()
     {               
