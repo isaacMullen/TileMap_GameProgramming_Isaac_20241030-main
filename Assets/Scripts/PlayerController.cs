@@ -163,27 +163,27 @@ public class PlayerController : MonoBehaviour
         {
             MovePlayer(Vector3Int.up);  // Move up
             FlipTile(facingRight, playerPosition);  // Keep the same facing direction
-            Debug.Log(playerPosition);
+            //Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.S) && acceptingInput)
         {
             MovePlayer(Vector3Int.down);  // Move down
             FlipTile(facingRight, playerPosition);  // Keep the same facing direction
-            Debug.Log(playerPosition);
+            //Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.A) && acceptingInput)
         {
             facingRight = false;  // Update facing direction to left
             MovePlayer(Vector3Int.left);  // Move left
             FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
-            Debug.Log(playerPosition);
+            //Debug.Log(playerPosition);
         }
         if (Input.GetKeyDown(KeyCode.D) && acceptingInput)
         {
             facingRight = true;  // Update facing direction to right
             MovePlayer(Vector3Int.right);  // Move right
             FlipTile(facingRight, playerPosition);  // Flip sprite horizontally
-            Debug.Log(playerPosition);
+            //Debug.Log(playerPosition);
         }
     }
 

@@ -1,10 +1,12 @@
+make enemies move (Finsihed Calculating the difference from enemy to player, now will be able to implement logic to make enemy approach player)
+
 Implement health system
 
 Fix you win text. modify fish count text
 
 Give my enemies spawning rules based on the originial tilemap
 
-make enemies move
+
 
 
 
