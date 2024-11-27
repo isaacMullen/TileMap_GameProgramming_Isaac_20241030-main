@@ -1,10 +1,9 @@
 make enemies move (Finsihed Calculating the difference from enemy to player, now will be able to implement logic to make enemy approach player)
 
-Implement health system
 
 Fix you win text. modify fish count text
 
-Give my enemies spawning rules based on the originial tilemap
+
 
 
 
@@ -18,3 +17,11 @@ Give my enemies spawning rules based on the originial tilemap
 DONE--------------------------------------------------
 
 -Seperate my player controller into its own script
+
+-Give my enemies spawning rules based on the originial tilemap
+
+-Add Turn System
+
+-Implement health system
+
+

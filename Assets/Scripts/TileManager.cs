@@ -18,8 +18,10 @@ using Unity.Collections;
 public class TileManager : MonoBehaviour
 {
     //CONTAINERS TO TRACK POSITION OF PLACED ROCKS AND FISH
-    HashSet<(int, int)> placedRocks = new HashSet<(int, int)>();
-    HashSet<(int, int)> placedFish = new HashSet<(int, int)>();
+    public HashSet<(int, int)> placedRocks = new HashSet<(int, int)>();
+    public HashSet<(int, int)> placedFish = new HashSet<(int, int)>();
+
+    public List<Vector3Int> obstacles = new List<Vector3Int>();
 
     public PlayerController playerController;
 
@@ -54,14 +56,14 @@ public class TileManager : MonoBehaviour
     
     public float cellSize = 1f;
    
-    void Start()
-    {       
-
+    void Awake()
+    {        
         string mapData = GenerateMapString(file, 25, 10);
         string sampleInputData = File.ReadAllText(sampleFile);
 
         //CHANGE TO SAMPLE_INPUT_DATA OR CHANGE SAMPLE_FILE ITSELF(CLASS LEVEL) TO TEST DIFFERENT MAP DATA
-        ConvertMapToTileMap(mapData);        
+        ConvertMapToTileMap(mapData);
+       
     }
 
     // Update is called once per frame
@@ -136,6 +138,7 @@ public class TileManager : MonoBehaviour
                     mapData.Append('R');
                     //STORING POSITION OF ROCK
                     placedRocks.Add((x, y));
+                    
                 }
                 //FISH (if inside the bounds of the map and not the players start position)
                 else if (x == fishPosition && y < height - 1 && y != 0 && !placedRocks.Contains((x, y)) && (x != 5 && y != 12))
@@ -206,6 +209,11 @@ public class TileManager : MonoBehaviour
                         break;
                     case 'R' or '*':
                         ReplaceTile(tileMap, tilePosition, rockBase);
+                                                
+                        //GETTING THE POSITIONS OF THE ROCKS IRRESPECTIVE OF TILEMAP SIZE OR ORIGIN SO I CAN LATER COMPARE THEM PROPERLY (VERY USEFUL)
+                        Vector3Int normalizedRockPosition = tileMap.WorldToCell(tileMap.CellToWorld(tilePosition) - offset);                        
+                        obstacles.Add(normalizedRockPosition);
+                        
                         break;
                     case '#':
                         ReplaceTile(tileMap, tilePosition, borderBase);
@@ -230,5 +238,5 @@ public class TileManager : MonoBehaviour
             }
         }        
         return grid;
-    }     
+    }        
 }
