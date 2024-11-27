@@ -5,13 +5,18 @@ using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public TextMeshProUGUI healthText;
+    public float health;
+    public Slider healthBar;    
+    public float maxHealth;    
+    
     public EnemyController enemyController;
 
-    public TextMeshProUGUI healthText;
-    public int health;
+    
 
     bool inCombat;
     int turn = 0;
@@ -43,11 +48,21 @@ public class PlayerController : MonoBehaviour
 
         healthText.enabled = false;
         enemyController.enemyHealthText.enabled = false;
+
+        healthBar.maxValue = maxHealth;
+        health = maxHealth;
     }
 
     // Update is called once per frame
     void Update()
     {
+        
+        //HEALTH BAR IS UPDATING TO REPRESENT CURRENT HEALTH
+        healthBar.value = health;
+        Mathf.Clamp(health, 0, maxHealth);
+        
+                
+        
         if (fishCount == fishToCollect)
         {
             StartCoroutine(ReloadMap());
@@ -65,7 +80,7 @@ public class PlayerController : MonoBehaviour
         if(!inCombat)
         {
             HandlePlayerInput();
-            UpdateHealth();
+            UpdateHealthText();
         }      
         else if (!combatRoutineRunning)
         {
@@ -73,11 +88,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateHealth()
+   
+    void UpdateHealthText()
     {
         if(inCombat)
         {
-            SetText(healthText, $"HP: {health}", true);
+            SetText(healthText, health.ToString(), true);
             SetText(enemyController.enemyHealthText, $"Enemy HP: {enemyController.enemyHealth}", true);            
         }
         else
@@ -120,8 +136,12 @@ public class PlayerController : MonoBehaviour
         {
             if (!playerTurn)
             {
-                int randomAttack = Random.Range(0, 3);
-                Debug.Log($"Enemy Attacked");
+                int randomAttackValue = Random.Range(3, 8);
+                
+                health -= randomAttackValue;
+                UpdateHealthText();
+
+                Debug.Log($"Enemy Attacked for {randomAttackValue} damage!");
                 yield return new WaitForSeconds(1);
                 playerTurn = true;
             }
