@@ -9,16 +9,17 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject combatPanel;
+    public GameObject overWorldPanel;
+    
     public TextMeshProUGUI healthText;
     public float health;
     public Slider healthBar;    
     public float maxHealth;    
     
     public EnemyController enemyController;
-
-    
-
-    bool inCombat;
+   
+    public bool inCombat;
     int turn = 0;
     bool acceptingInput = true;
     
@@ -44,25 +45,24 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {        
+        combatPanel.SetActive(false);
+        
         SetText(centerText, "Collect The Fish!", true);
-
-        healthText.enabled = false;
+        
         enemyController.enemyHealthText.enabled = false;
 
         healthBar.maxValue = maxHealth;
         health = maxHealth;
+
+        SetText(healthText, health.ToString(), true);
     }
 
     // Update is called once per frame
     void Update()
-    {
-        
+    {        
         //HEALTH BAR IS UPDATING TO REPRESENT CURRENT HEALTH
-        healthBar.value = health;
-        Mathf.Clamp(health, 0, maxHealth);
-        
-                
-        
+        healthBar.value = health;        
+                               
         if (fishCount == fishToCollect)
         {
             StartCoroutine(ReloadMap());
@@ -82,6 +82,7 @@ public class PlayerController : MonoBehaviour
             HandlePlayerInput();
             UpdateHealthText();
         }      
+        //BOOL EXPRESSION TO STOP THE COROUTINE FROM BEING CALLED EACH FRAME
         else if (!combatRoutineRunning)
         {
             StartCombat();                     
@@ -97,8 +98,7 @@ public class PlayerController : MonoBehaviour
             SetText(enemyController.enemyHealthText, $"Enemy HP: {enemyController.enemyHealth}", true);            
         }
         else
-        {
-            healthText.enabled = false;
+        {            
             enemyController.enemyHealthText.enabled = false;
         }
         
@@ -111,17 +111,27 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("You Died");            
             inCombat = false;
+            
+            combatPanel.SetActive(false);
+            overWorldPanel.SetActive(true);
         }
         else if(enemyController.enemyHealth <= 0)
         {
-            Debug.Log("Enemy Died");
+            Debug.Log($"Enemy Died | Enemy Health {enemyController.enemyHealth}");
             inCombat = false;
+            
+            combatPanel.SetActive(false);
+            overWorldPanel.SetActive(true);
         }
     }
     
     bool combatRoutineRunning = false;
     void StartCombat()
     {
+        overWorldPanel.SetActive(false);
+        combatPanel.SetActive(true);
+
+        
         combatRoutineRunning = true;
         StartCoroutine(CombatRoutine());                
     }
@@ -139,6 +149,7 @@ public class PlayerController : MonoBehaviour
                 int randomAttackValue = Random.Range(3, 8);
                 
                 health -= randomAttackValue;
+                health = Mathf.Clamp(health, 0 , maxHealth);
                 UpdateHealthText();
 
                 Debug.Log($"Enemy Attacked for {randomAttackValue} damage!");
@@ -150,6 +161,7 @@ public class PlayerController : MonoBehaviour
 
             if (playerTurn)
             {
+                EndCombatCondition();
                 Debug.Log("Your turn, Press 1 to attack.");
                 yield return WaitForPlayerAction();
                 Debug.Log("Player Attacked the enemy!");
@@ -265,17 +277,13 @@ public class PlayerController : MonoBehaviour
 
 
         if (IsValidMove(newPosition))
-        {
-            TileBase tileToReplace = tileManager.tileMap.GetTile(playerPosition);
-
+        {           
             playerMap.SetTransformMatrix(playerPosition, Matrix4x4.identity);
 
             //CLEARING THE PLAYER MAP EVERY TIME HE MOVES SO IT DOESN'T HAVE TO DRAW TILES TO OVERRIDE THE PREVIOUS SHARK POSITION
             //THIS WAS CAUSING A BUG WHERE WHEN I REGENERATE THE MAP IT WAS HIDING SOME ENVRIONMENT TILES BELOW THE PLAYERMAP THAT WAS GENERATED 
             //AS THE PLAYER MOVED (!!!AWESOME SIMPLE FIX!!!)
-            playerMap.ClearAllTiles();
-
-            tileManager.ReplaceTile(tileManager.tileMap, playerPosition, tileToReplace);
+            playerMap.ClearAllTiles();            
 
             playerPosition = newPosition;
 
