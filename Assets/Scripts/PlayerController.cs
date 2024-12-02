@@ -10,8 +10,10 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public FishTracker fishTracker;
+    
     //public int autoAttack = UnityEngine.Random.Range(0, 0);
-
+    public bool isLoading = false;
     public Tilemap enemy;
     
     public GameObject combatPanel;
@@ -33,6 +35,8 @@ public class PlayerController : MonoBehaviour
 
     public TextMeshProUGUI fishText;
     public TextMeshProUGUI centerText;
+    public TextMeshProUGUI turnText;
+    
     bool hasPressedAnyKey;
 
     public TileManager tileManager;
@@ -64,12 +68,13 @@ public class PlayerController : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {        
+    {                        
         //HEALTH BAR IS UPDATING TO REPRESENT CURRENT HEALTH
         healthBar.value = health;        
                                
         if (fishCount == fishToCollect)
         {
+            Debug.Log("COLLECTED ALL FISH");
             StartCoroutine(ReloadMap());
         }
 
@@ -127,6 +132,8 @@ public class PlayerController : MonoBehaviour
 
             combatPanel.SetActive(false);
             overWorldPanel.SetActive(true);
+
+            enemyController.enemyCount--;
         }        
     }
     
@@ -151,6 +158,8 @@ public class PlayerController : MonoBehaviour
         {
             if (!playerTurn)
             {
+                SetText(turnText, "<color=red>Enemy</color> Turn", true);
+
                 EndCombatCondition();                
 
                 int randomAttackValue = UnityEngine.Random.Range(3, 4);
@@ -162,6 +171,7 @@ public class PlayerController : MonoBehaviour
 
                 Debug.Log($"Enemy Attacked for {randomAttackValue} damage!");
                 yield return new WaitForSeconds(1);
+                SetText(turnText, "<color=green>Your</color> Turn", true);
                 playerTurn = true;
             }
 
@@ -169,12 +179,16 @@ public class PlayerController : MonoBehaviour
 
             if (playerTurn)
             {
+                
+
                 EndCombatCondition();
                 Debug.Log("Your turn, Press 1 to attack.");
                 
-                yield return PlayerAttackAction();               
-
-                yield return new WaitForSeconds(2);
+                yield return PlayerAttackAction();
+                
+                SetText(turnText, "<color=red>Enemy</color> Turn", true);
+                yield return new WaitForSeconds(1);
+                
                 turn++;
                 playerTurn = false;
             }            
@@ -233,19 +247,22 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    bool isLoading = false;
+    
     
     IEnumerator ReloadMap()
     {
         if (isLoading) yield break;
 
+        Debug.Log("INSIDE RELOADMAP");
+
         isLoading = true;
 
-        acceptingInput = false;
-        Debug.Log("You Win!");
+        acceptingInput = false;       
         SetText(centerText, "You Win!", true);
 
         yield return new WaitForSeconds(2);
+
+        centerText.enabled = false;
 
         tileManager.tileMap.ClearAllTiles();
 
@@ -254,7 +271,12 @@ public class PlayerController : MonoBehaviour
         fishToCollect = 0;
         string mapData = tileManager.GenerateMapString(tileManager.file, 25, 10);
         tileManager.ConvertMapToTileMap(mapData);
-        acceptingInput = true;                
+        acceptingInput = true;
+        
+        enemyController.SpawnEnemy();
+
+        enemyController.moveInterval -= .2f;
+        isLoading = false;
     }
     
     bool IsValidMove(Vector3Int position)
@@ -329,6 +351,7 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("DETECTED IN ARRAY");
             fishCount++;
+            fishTracker.totalFish++;
             tileManager.ReplaceTile(tileManager.tileMap, playerPosition, tileManager.seaBase);
             SetText(fishText, $"Fish: {fishCount}", true);
 

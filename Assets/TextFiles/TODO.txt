@@ -1,8 +1,11 @@
-visual feedback for turns
-
 make different attacks and display them
 
-Make a simple win condition
+Add Random Health increase
+
+stop rock spawning at player position - MAYBE
+
+spend total fish to keep playing - MAYBE
+
 
 
 
@@ -26,3 +29,11 @@ DONE--------------------------------------------------
 -Make enemies move (Finsihed Calculating the difference from enemy to player, now will be able to implement logic to make enemy approach player)
 
 -Display enemy health with a healthbar
+
+-Make a simple win condition
+
+-visual feedback for turns
+
+-Track Total Fish
+
+-Speed up enemies every 2 levels

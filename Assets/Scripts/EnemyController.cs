@@ -27,11 +27,16 @@ public class EnemyController : MonoBehaviour
     bool chasingPlayer = false;
     public bool defeated;
 
-    int enemyCount = 0;
+    public int enemyCount = 0;
+
+    public float moveInterval;
+    public float startingMoveInterval;
+
 
     // Start is called before the first frame update
     void Awake()
     {
+        startingMoveInterval = moveInterval;
         enemyCurrentPosition = enemySpawnLocation;
         enemyCount = 0;
         SpawnEnemy();      
@@ -41,6 +46,8 @@ public class EnemyController : MonoBehaviour
     void Update()
     {                
         enemyHealthBar.value = enemyHealth;
+
+        moveInterval = Mathf.Clamp(moveInterval, .5f, startingMoveInterval);
         
         //CORRECTING FOR DIFFERENT TILEMAP COORDINATES BY CONVERTING FROM WORLD TO CELL THEN CONVERTING BACK TO WORLD PS
         //Vector3Int normalizedEnemyPosition = tileManager.tileMap.WorldToCell(enemyTileMap.CellToWorld(enemyCurrentPosition));
@@ -52,7 +59,7 @@ public class EnemyController : MonoBehaviour
 
         //Debug.Log($"enemyPos: {enemyCurrentPosition} | PlayerPos: {normalizedPlayerPosition - tileManager.offset} | Difference: {enemyGridDifference}");
 
-        if(!chasingPlayer && !playerController.inCombat && !defeated)
+        if(!chasingPlayer && !playerController.inCombat && !defeated && !playerController.isLoading)
         {
             StartCoroutine(ChaseEnemy());
         }
@@ -65,7 +72,19 @@ public class EnemyController : MonoBehaviour
         }
         
     }
+    IEnumerator RespawnEnemy()
+    {
+        if (enemyCount != 0)
+            yield break;
 
+        yield return new WaitForSeconds(1);
+
+        SpawnEnemy();
+
+        enemyCount++;
+    }
+    
+    
     IEnumerator ChaseEnemy()
     {
         chasingPlayer = true;        
@@ -75,7 +94,7 @@ public class EnemyController : MonoBehaviour
         if(!playerController.inCombat && enemyTileBase != null)
         {
             MoveEnemy();
-            yield return new WaitForSeconds(.5f);
+            yield return new WaitForSeconds(moveInterval);
         }
 
         chasingPlayer = false;
@@ -144,7 +163,7 @@ public class EnemyController : MonoBehaviour
 
         TileBase tileAtPosition = tileManager.tileMap.GetTile(normalizedTileAtPositon);
         TileBase playerAtPosition = playerController.playerMap.GetTile(position);        
-        
+                
         if (tileAtPosition == tileManager.seaBase && playerAtPosition != playerController.playerBase)
         {
             return true;
@@ -174,10 +193,12 @@ public class EnemyController : MonoBehaviour
         return bottomLayerTilemap.GetTile(bottomLayerCellPosition);
     }*/
 
-    void SpawnEnemy()
+    public void SpawnEnemy()
     {
-        enemyCount++;
-        Debug.Log(enemyCount);
+        enemyTileMap.enabled = true;
+        defeated = false;
+        
+        Debug.Log(moveInterval);
         
         enemyHealthBar.maxValue = enemyMaxHealth;
         enemyHealth = enemyMaxHealth;
