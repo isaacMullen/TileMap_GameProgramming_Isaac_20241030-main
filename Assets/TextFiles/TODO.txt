@@ -1,8 +1,8 @@
-make enemies move (Finsihed Calculating the difference from enemy to player, now will be able to implement logic to make enemy approach player)
+visual feedback for turns
 
-Fix you win text. modify fish count text
+make different attacks and display them
 
-
+Make a simple win condition
 
 
 
@@ -23,4 +23,6 @@ DONE--------------------------------------------------
 
 -Implement health system
 
+-Make enemies move (Finsihed Calculating the difference from enemy to player, now will be able to implement logic to make enemy approach player)
 
+-Display enemy health with a healthbar

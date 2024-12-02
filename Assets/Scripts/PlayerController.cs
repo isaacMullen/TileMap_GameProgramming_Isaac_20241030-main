@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -9,6 +10,10 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    //public int autoAttack = UnityEngine.Random.Range(0, 0);
+
+    public Tilemap enemy;
+    
     public GameObject combatPanel;
     public GameObject overWorldPanel;
     
@@ -47,7 +52,7 @@ public class PlayerController : MonoBehaviour
     {        
         combatPanel.SetActive(false);
         
-        SetText(centerText, "Collect The Fish!", true);
+        SetText(centerText, "Collect The Fish and Avoid Enemies! (or don't)", true);
         
         enemyController.enemyHealthText.enabled = false;
 
@@ -80,7 +85,7 @@ public class PlayerController : MonoBehaviour
         if(!inCombat)
         {
             HandlePlayerInput();
-            UpdateHealthText();
+            //UpdateHealthText();
         }      
         //BOOL EXPRESSION TO STOP THE COROUTINE FROM BEING CALLED EACH FRAME
         else if (!combatRoutineRunning)
@@ -95,14 +100,12 @@ public class PlayerController : MonoBehaviour
         if(inCombat)
         {
             SetText(healthText, health.ToString(), true);
-            SetText(enemyController.enemyHealthText, $"Enemy HP: {enemyController.enemyHealth}", true);            
+            SetText(enemyController.enemyHealthText, enemyController.enemyHealth.ToString(), true);            
         }
         else
         {            
             enemyController.enemyHealthText.enabled = false;
-        }
-        
-        
+        }                
     }
 
     void EndCombatCondition()
@@ -118,11 +121,13 @@ public class PlayerController : MonoBehaviour
         else if(enemyController.enemyHealth <= 0)
         {
             Debug.Log($"Enemy Died | Enemy Health {enemyController.enemyHealth}");
-            inCombat = false;
-            
+            inCombat = false;            
+
+            enemyController.defeated = true;
+
             combatPanel.SetActive(false);
             overWorldPanel.SetActive(true);
-        }
+        }        
     }
     
     bool combatRoutineRunning = false;
@@ -146,10 +151,13 @@ public class PlayerController : MonoBehaviour
         {
             if (!playerTurn)
             {
-                int randomAttackValue = Random.Range(3, 8);
+                EndCombatCondition();                
+
+                int randomAttackValue = UnityEngine.Random.Range(3, 4);
                 
                 health -= randomAttackValue;
                 health = Mathf.Clamp(health, 0 , maxHealth);
+
                 UpdateHealthText();
 
                 Debug.Log($"Enemy Attacked for {randomAttackValue} damage!");
@@ -163,9 +171,8 @@ public class PlayerController : MonoBehaviour
             {
                 EndCombatCondition();
                 Debug.Log("Your turn, Press 1 to attack.");
-                yield return WaitForPlayerAction();
-                Debug.Log("Player Attacked the enemy!");
-
+                
+                yield return PlayerAttackAction();               
 
                 yield return new WaitForSeconds(2);
                 turn++;
@@ -175,16 +182,23 @@ public class PlayerController : MonoBehaviour
         combatRoutineRunning = false;
     }
         
-    IEnumerator WaitForPlayerAction()
+    IEnumerator PlayerAttackAction()
     {
         bool actionTaken = false;
         while(!actionTaken)
         {
             if(Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                actionTaken = true;
-            }
-            
+            {                
+                int randomAttackValue = UnityEngine.Random.Range(20, 25);
+                
+                enemyController.enemyHealth -= randomAttackValue;
+                enemyController.enemyHealth = Mathf.Clamp(enemyController.enemyHealth, 0, enemyController.enemyMaxHealth);
+                UpdateHealthText();
+                EndCombatCondition();
+                
+                Debug.Log($"Player Auto Attacked for {randomAttackValue} damage.");
+                actionTaken = true;                
+            }            
             yield return null;
         }
     }
