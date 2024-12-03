@@ -501,6 +501,7 @@ MonoBehaviour:
   defeated: 0
   enemyCount: 0
   moveInterval: 1.2
+  startingMoveInterval: 0
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1574,6 +1575,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97666a8cded590043abf5df2830fea37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCamera: {fileID: 519420031}
   fishTracker: {fileID: 1912384337}
   isLoading: 0
   enemy: {fileID: 232363304}

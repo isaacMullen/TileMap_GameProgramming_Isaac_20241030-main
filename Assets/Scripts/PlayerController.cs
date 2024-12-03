@@ -10,6 +10,13 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public int randomWidth;
+    public int randomHeight;
+
+    public Camera mainCamera;
+    
+    bool startWaving = true;
+    
     public FishTracker fishTracker;
     
     //public int autoAttack = UnityEngine.Random.Range(0, 0);
@@ -51,9 +58,14 @@ public class PlayerController : MonoBehaviour
     private readonly Matrix4x4 flipMatrix = Matrix4x4.Scale(new Vector3(-1, 1, 1));
     private readonly Matrix4x4 normalMatrix = Matrix4x4.identity;
 
+    Vector3 cameraPosition;
+
     // Start is called before the first frame update
     void Start()
-    {        
+    {
+        FitCameraToMapSize();
+
+
         combatPanel.SetActive(false);
         
         SetText(centerText, "Collect The Fish and Avoid Enemies! (or don't)", true);
@@ -69,6 +81,11 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {                        
+        if(startWaving)
+        {
+            StartCoroutine(tileManager.SimulateWaves());
+        }
+        
         //HEALTH BAR IS UPDATING TO REPRESENT CURRENT HEALTH
         healthBar.value = health;        
                                
@@ -98,7 +115,6 @@ public class PlayerController : MonoBehaviour
             StartCombat();                     
         }
     }
-
    
     void UpdateHealthText()
     {
@@ -252,13 +268,21 @@ public class PlayerController : MonoBehaviour
     IEnumerator ReloadMap()
     {
         if (isLoading) yield break;
+                
+        //SETTING NEW RANDOM DIMENSIONS
+        randomWidth = UnityEngine.Random.Range(7, 15);
+        randomHeight = UnityEngine.Random.Range(7, 15);
 
         Debug.Log("INSIDE RELOADMAP");
 
         isLoading = true;
 
         acceptingInput = false;       
-        SetText(centerText, "You Win!", true);
+        SetText(centerText, "You Win!", true);        
+
+        //STOPS CALLING THE COROUTINE
+        tileManager.seaTiles.Clear();
+        startWaving = false;
 
         yield return new WaitForSeconds(2);
 
@@ -266,16 +290,22 @@ public class PlayerController : MonoBehaviour
 
         tileManager.tileMap.ClearAllTiles();
 
+
         //Regenerating map... And resetting win condition.
         fishCount = 0;
         fishToCollect = 0;
-        string mapData = tileManager.GenerateMapString(tileManager.file, 25, 10);
-        tileManager.ConvertMapToTileMap(mapData);
+        string mapData = tileManager.GenerateMapString(tileManager.file, randomWidth, randomHeight);
+        
+        tileManager.ConvertMapToTileMap(mapData);        
+        
         acceptingInput = true;
         
         enemyController.SpawnEnemy();
 
         enemyController.moveInterval -= .2f;
+
+        FitCameraToMapSize();
+        startWaving = true;
         isLoading = false;
     }
     
@@ -310,8 +340,10 @@ public class PlayerController : MonoBehaviour
     Vector3Int MovePlayer(Vector3Int direction)
     {
         Vector3Int newPosition = playerPosition + direction;
+        
 
-
+        
+        
         if (IsValidMove(newPosition))
         {           
             playerMap.SetTransformMatrix(playerPosition, Matrix4x4.identity);
@@ -380,5 +412,26 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    
+    private void FitCameraToMapSize()
+    {
+        Bounds bounds = tileManager.tileMap.localBounds;
+
+        float mapWidth = bounds.size.x;
+        float mapHeight= bounds.size.y;
+
+        mainCamera.orthographicSize = mapHeight / 2f;
+
+        // Calculate the screen's aspect ratio (width-to-height ratio of the display)
+        float aspectRatio = (float)Screen.width / Screen.height;
+
+        // Check if the width constraint is more limiting than the height constraint
+        if (mapWidth / aspectRatio > mapHeight)
+        {
+            // Adjust orthographic size to ensure the width fits within the camera's view
+            mainCamera.orthographicSize = (mapWidth / 2f) / aspectRatio;
+        }
+        mainCamera.transform.position = new Vector3(bounds.center.x, bounds.center.y, mainCamera.transform.position.z);
+    }
+
+
 }

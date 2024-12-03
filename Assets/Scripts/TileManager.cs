@@ -17,9 +17,12 @@ using Unity.Collections;
 
 public class TileManager : MonoBehaviour
 {
+    bool waving;        
+    
     //CONTAINERS TO TRACK POSITION OF PLACED ROCKS AND FISH
     public HashSet<(int, int)> placedRocks = new HashSet<(int, int)>();
     public HashSet<(int, int)> placedFish = new HashSet<(int, int)>();
+    public HashSet<(int, int)> seaTiles = new HashSet<(int, int)>();
 
     public List<Vector3Int> obstacles = new List<Vector3Int>();
 
@@ -52,9 +55,12 @@ public class TileManager : MonoBehaviour
     public int rowLength;
 
     public Vector3Int offset = new Vector3Int(0, 0, 0);
+    Vector3Int cameraOffset = new();
     public Vector2 gridOrigin = Vector2.zero;  // Bottom-left corner of the grid
     
     public float cellSize = 1f;
+
+    
    
     void Awake()
     {        
@@ -95,10 +101,7 @@ public class TileManager : MonoBehaviour
 
         //SPAWNING PLAYER IN THE MIDDLE OF THE MAP
         ReplaceTile(playerController.playerMap, playerController.playerPosition, playerController.playerBase);
-
-        
-
-        
+                
 
         StringBuilder mapData = new StringBuilder();
         using StreamWriter writer = new StreamWriter(filename);
@@ -128,6 +131,7 @@ public class TileManager : MonoBehaviour
                     {
                         writer.Write('~');
                         mapData.Append('~');
+                        seaTiles.Add((x, y));
                     }
 
                 }
@@ -169,6 +173,7 @@ public class TileManager : MonoBehaviour
                 {
                     writer.Write('~');
                     mapData.Append('~');
+                    seaTiles.Add((x, y));
                 }
                 
             }
@@ -220,8 +225,9 @@ public class TileManager : MonoBehaviour
                         break;
                     //I needed variation in my base ground tiles so I seperated defaultTiles for your sample input with my own list of tiles
                     case '~':
-                        TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];                        
+                        TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];                                                
                         ReplaceTile(tileMap, tilePosition, seaBaseToDraw);
+                        //ADDING SEA TILES TO A LIST TO ANIMATE THEM                        
                         break;
                     case 'F' or '$':
                         //Debug.Log($"Placing fish at {tilePosition}");
@@ -238,5 +244,24 @@ public class TileManager : MonoBehaviour
             }
         }        
         return grid;
-    }        
+    } 
+    
+    public IEnumerator SimulateWaves()
+    {
+        if (waving) yield break; 
+        
+        waving = true;  
+        
+        foreach (var c in seaTiles)
+        {
+            //Debug.Log(c); 
+            TileBase seaBaseToDraw = seaBases[UnityEngine.Random.Range(0, seaBases.Count)];
+            ReplaceTile(tileMap, new Vector3Int(c.Item1, c.Item2, 0) + offset, seaBaseToDraw);
+        }
+        yield return new WaitForSeconds(2);
+        
+        waving = false;
+
+        yield break;
+    }
 }

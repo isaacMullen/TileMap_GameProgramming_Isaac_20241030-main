@@ -207,7 +207,9 @@ public class EnemyController : MonoBehaviour
         Vector3Int environmentMapSize = tileManager.tileMap.size;
         Vector3Int excludeBorder = new Vector3Int(1, 1, 0);
 
-        Vector3Int validSpawnBounds = environmentMapSize - excludeBorder + tileManager.offset;        
+        Vector3Int validSpawnBounds = environmentMapSize - excludeBorder + tileManager.offset;
+
+        Debug.Log($"Tilemap Size {tileManager.tileMap.size}");
 
         //DETERMINING A RANDOM SPAWN POSITION BASED ON THE VALID BOUNDS
         enemySpawnLocation = new Vector3Int((Random.Range(1, validSpawnBounds.x)), Random.Range(1, validSpawnBounds.y), 0);
@@ -222,5 +224,6 @@ public class EnemyController : MonoBehaviour
         }
 
         enemyTileMap.SetTile(enemySpawnLocation + tileManager.offset, enemyTileBase);
+        Debug.Log($"Enemy Spawn Location {enemySpawnLocation}");
     }
 }
