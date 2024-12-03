@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
@@ -71,20 +70,8 @@ public class EnemyController : MonoBehaviour
 
         }
         
-    }
-    IEnumerator RespawnEnemy()
-    {
-        if (enemyCount != 0)
-            yield break;
-
-        yield return new WaitForSeconds(1);
-
-        SpawnEnemy();
-
-        enemyCount++;
-    }
-    
-    
+    }    
+        
     IEnumerator ChaseEnemy()
     {
         chasingPlayer = true;        
@@ -179,40 +166,28 @@ public class EnemyController : MonoBehaviour
             return false;
         }
         return true;
-    }
-
-    /*TileBase GetUnderlyingTile(Tilemap topLayerTilemap, Tilemap bottomLayerTilemap, Vector3Int topLayerCellPosition)
-    {
-        // Convert the top-layer cell position to world space
-        Vector3 worldPosition = topLayerTilemap.CellToWorld(topLayerCellPosition);
-
-        // Convert the world position to cell space in the bottom layer
-        Vector3Int bottomLayerCellPosition = bottomLayerTilemap.WorldToCell(worldPosition);
-
-        // Get the tile from the bottom layer
-        return bottomLayerTilemap.GetTile(bottomLayerCellPosition);
-    }*/
+    }    
 
     public void SpawnEnemy()
     {
         enemyTileMap.enabled = true;
         defeated = false;
         
-        Debug.Log(moveInterval);
+        //Debug.Log(moveInterval);
         
         enemyHealthBar.maxValue = enemyMaxHealth;
         enemyHealth = enemyMaxHealth;
         
         //DETERMINING THE VALID BOUNDS OF THE MAP THE ENEMY CAN SPAWN IN
         Vector3Int environmentMapSize = tileManager.tileMap.size;
-        Vector3Int excludeBorder = new Vector3Int(1, 1, 0);
+        Vector3Int excludeBorder = new Vector3Int(2, 1, 0);
 
         Vector3Int validSpawnBounds = environmentMapSize - excludeBorder + tileManager.offset;
+        Vector3Int validSpawnMin = new Vector3Int(1, 1, 0) + tileManager.offset; // Minimum bounds considering the offset
+        Vector3Int validSpawnMax = validSpawnBounds; // Maximum bounds considering the offset
 
-        Debug.Log($"Tilemap Size {tileManager.tileMap.size}");
-
-        //DETERMINING A RANDOM SPAWN POSITION BASED ON THE VALID BOUNDS
-        enemySpawnLocation = new Vector3Int((Random.Range(1, validSpawnBounds.x)), Random.Range(1, validSpawnBounds.y), 0);
+        // Random spawn position within the valid bounds range
+        enemySpawnLocation = new Vector3Int(Random.Range(validSpawnMin.x, validSpawnMax.x), Random.Range(validSpawnMin.y, validSpawnMax.y), 0);             
 
         //SETTING THE CURRENT LOCATION FOR LATER USE IN SIMPLE AI
         enemyCurrentPosition = enemySpawnLocation;
@@ -220,7 +195,7 @@ public class EnemyController : MonoBehaviour
         //REGENERATING A RANDOM SPAWN LOCATION IF THE FIRST ONE CONTAINS A ROCK
         while (tileManager.obstacles.Contains((enemySpawnLocation)))
         {
-            enemySpawnLocation = new Vector3Int((Random.Range(1, validSpawnBounds.x)), Random.Range(1, validSpawnBounds.y), 0);
+            enemySpawnLocation = new Vector3Int(Random.Range(validSpawnMin.x, validSpawnMax.x), Random.Range(validSpawnMin.y, validSpawnMax.y), 0);
         }
 
         enemyTileMap.SetTile(enemySpawnLocation + tileManager.offset, enemyTileBase);

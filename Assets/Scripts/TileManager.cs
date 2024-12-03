@@ -5,11 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.WSA;
 using System.Text;
 using System.Runtime.InteropServices;
 using Unity.Collections;
@@ -28,9 +25,8 @@ public class TileManager : MonoBehaviour
 
     public PlayerController playerController;
 
-    public string file = "Assets/TextFiles/MapTextFile.txt";
-    public string sampleFile = "Assets/TextFiles/SampleInput.txt";     
-    
+    public string file;
+
     public Tilemap tileMap;
     public Tilemap enemyTileMap;
     
@@ -54,21 +50,22 @@ public class TileManager : MonoBehaviour
     public int columnLength;
     public int rowLength;
 
-    public Vector3Int offset = new Vector3Int(0, 0, 0);
-    Vector3Int cameraOffset = new();
+    public Vector3Int offset = new Vector3Int(0, 0, 0);   
     public Vector2 gridOrigin = Vector2.zero;  // Bottom-left corner of the grid
     
     public float cellSize = 1f;
 
     
    
-    void Awake()
-    {        
-        string mapData = GenerateMapString(file, 25, 10);
-        string sampleInputData = File.ReadAllText(sampleFile);
+    void Start()
+    {
+        file = Path.Combine(Application.streamingAssetsPath, "MapTextFile.txt");
+        
+        string mapData = GenerateMapString(file, 25, 10);        
 
         //CHANGE TO SAMPLE_INPUT_DATA OR CHANGE SAMPLE_FILE ITSELF(CLASS LEVEL) TO TEST DIFFERENT MAP DATA
         ConvertMapToTileMap(mapData);
+        
        
     }
 
@@ -97,10 +94,7 @@ public class TileManager : MonoBehaviour
         playerController.playerMap.ClearAllTiles();
 
         //RESETTING PLAYER POSITION
-        playerController.playerPosition = new Vector3Int(0, 0, 0);
-
-        //SPAWNING PLAYER IN THE MIDDLE OF THE MAP
-        ReplaceTile(playerController.playerMap, playerController.playerPosition, playerController.playerBase);
+        
                 
 
         StringBuilder mapData = new StringBuilder();
@@ -213,8 +207,7 @@ public class TileManager : MonoBehaviour
                         ReplaceTile(tileMap, tilePosition, cornerBase);
                         break;
                     case 'R' or '*':
-                        ReplaceTile(tileMap, tilePosition, rockBase);
-                                                
+                        ReplaceTile(tileMap, tilePosition, rockBase);                                                
                         //GETTING THE POSITIONS OF THE ROCKS IRRESPECTIVE OF TILEMAP SIZE OR ORIGIN SO I CAN LATER COMPARE THEM PROPERLY (VERY USEFUL)
                         Vector3Int normalizedRockPosition = tileMap.WorldToCell(tileMap.CellToWorld(tilePosition) - offset);                        
                         obstacles.Add(normalizedRockPosition);
@@ -242,7 +235,8 @@ public class TileManager : MonoBehaviour
 
                 }                    
             }
-        }        
+        }  
+        
         return grid;
     } 
     

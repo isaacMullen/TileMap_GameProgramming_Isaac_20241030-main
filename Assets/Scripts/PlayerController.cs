@@ -3,13 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using System.IO;
+
 
 public class PlayerController : MonoBehaviour
 {
+    string file;
+    
+    public TextMeshProUGUI combatInstructions;
+    
+    public UIHandler UIhandler;
+    
     public int randomWidth;
     public int randomHeight;
 
@@ -51,24 +58,24 @@ public class PlayerController : MonoBehaviour
     public Vector3Int playerPosition;
     public Tilemap playerMap;
 
-
     public TileBase playerBase;
 
     bool facingRight = true;
     private readonly Matrix4x4 flipMatrix = Matrix4x4.Scale(new Vector3(-1, 1, 1));
     private readonly Matrix4x4 normalMatrix = Matrix4x4.identity;
 
-    Vector3 cameraPosition;
-
     // Start is called before the first frame update
     void Start()
     {
         FitCameraToMapSize();
 
+        file = Path.Combine(Application.streamingAssetsPath, "MapTextFile.txt");
+
+        SetText(combatInstructions, "<color=green>Auto Attack:</color> Press 1\n<color=orange>Special Attack:</color> Press 2", true);
 
         combatPanel.SetActive(false);
         
-        SetText(centerText, "Collect The Fish and Avoid Enemies! (or don't)", true);
+        SetText(centerText, "Survive as long as you can.\r\nCatch as many fish as you can.\r\nGoodLuck!", true);
         
         enemyController.enemyHealthText.enabled = false;
 
@@ -81,6 +88,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {                        
+        
+        
         if(startWaving)
         {
             StartCoroutine(tileManager.SimulateWaves());
@@ -135,9 +144,10 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("You Died");            
             inCombat = false;
-            
-            combatPanel.SetActive(false);
-            overWorldPanel.SetActive(true);
+
+            UIhandler.EndGameDisplayUI();
+
+
         }
         else if(enemyController.enemyHealth <= 0)
         {
@@ -150,6 +160,8 @@ public class PlayerController : MonoBehaviour
             overWorldPanel.SetActive(true);
 
             enemyController.enemyCount--;
+
+            
         }        
     }
     
@@ -178,7 +190,7 @@ public class PlayerController : MonoBehaviour
 
                 EndCombatCondition();                
 
-                int randomAttackValue = UnityEngine.Random.Range(3, 4);
+                int randomAttackValue = UnityEngine.Random.Range(4, 6);
                 
                 health -= randomAttackValue;
                 health = Mathf.Clamp(health, 0 , maxHealth);
@@ -194,9 +206,7 @@ public class PlayerController : MonoBehaviour
 
 
             if (playerTurn)
-            {
-                
-
+            {                
                 EndCombatCondition();
                 Debug.Log("Your turn, Press 1 to attack.");
                 
@@ -219,7 +229,7 @@ public class PlayerController : MonoBehaviour
         {
             if(Input.GetKeyDown(KeyCode.Alpha1))
             {                
-                int randomAttackValue = UnityEngine.Random.Range(20, 25);
+                int randomAttackValue = UnityEngine.Random.Range(8, 14);
                 
                 enemyController.enemyHealth -= randomAttackValue;
                 enemyController.enemyHealth = Mathf.Clamp(enemyController.enemyHealth, 0, enemyController.enemyMaxHealth);
@@ -228,7 +238,19 @@ public class PlayerController : MonoBehaviour
                 
                 Debug.Log($"Player Auto Attacked for {randomAttackValue} damage.");
                 actionTaken = true;                
-            }            
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                int randomAttackValue = UnityEngine.Random.Range(20, 25);
+
+                enemyController.enemyHealth -= randomAttackValue;
+                enemyController.enemyHealth = Mathf.Clamp(enemyController.enemyHealth, 0, enemyController.enemyMaxHealth);
+                UpdateHealthText();
+                EndCombatCondition();
+
+                Debug.Log($"Player Special Attacked for {randomAttackValue} damage.");
+                actionTaken = true;
+            }
             yield return null;
         }
     }
@@ -290,11 +312,12 @@ public class PlayerController : MonoBehaviour
 
         tileManager.tileMap.ClearAllTiles();
 
-
         //Regenerating map... And resetting win condition.
         fishCount = 0;
         fishToCollect = 0;
-        string mapData = tileManager.GenerateMapString(tileManager.file, randomWidth, randomHeight);
+
+        file = Path.Combine(Application.streamingAssetsPath, "MapTextFile.txt");
+        string mapData = tileManager.GenerateMapString(file, randomWidth, randomHeight);
         
         tileManager.ConvertMapToTileMap(mapData);        
         
@@ -412,7 +435,7 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void FitCameraToMapSize()
+    public void FitCameraToMapSize()
     {
         Bounds bounds = tileManager.tileMap.localBounds;
 
@@ -428,10 +451,12 @@ public class PlayerController : MonoBehaviour
         if (mapWidth / aspectRatio > mapHeight)
         {
             // Adjust orthographic size to ensure the width fits within the camera's view
-            mainCamera.orthographicSize = (mapWidth / 2f) / aspectRatio;
+            mainCamera.orthographicSize = ((mapWidth + 4f) / 2f) / aspectRatio;
         }
-        mainCamera.transform.position = new Vector3(bounds.center.x, bounds.center.y, mainCamera.transform.position.z);
-    }
+        mainCamera.transform.position = new Vector3(bounds.center.x + .5f, bounds.center.y, mainCamera.transform.position.z);
 
+        playerPosition = playerMap.WorldToCell(new Vector3(bounds.center.x, bounds.center.y, mainCamera.transform.position.z)) - new Vector3Int(1, 0, 0);
 
+        tileManager.ReplaceTile(playerMap, playerPosition, playerBase);
+    }    
 }
