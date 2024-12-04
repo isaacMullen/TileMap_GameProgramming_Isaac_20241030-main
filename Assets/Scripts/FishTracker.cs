@@ -17,6 +17,6 @@ public class FishTracker : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"Total Fish: {totalFish}");
+        //Debug.Log($"Total Fish: {totalFish}");
     }
 }
